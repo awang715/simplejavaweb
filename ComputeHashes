@@ -1,0 +1,97 @@
+/*
+ * This file:ComputeHashes.java
+ * Programmer: Annie Wang (anqiw1@andrew.cmu.edu)
+ * Course: 95-702 
+ * Assignment: Project 1 Task 1
+ * Description: this class is a server for ComputeHashes
+ * Last Modified: 2/5/2015
+ */
+
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import sun.misc.BASE64Encoder;
+
+public class ComputeHashes extends HttpServlet {
+
+    /*
+     *  doGet method
+     *  process request
+     */
+    public void doGet(HttpServletRequest req,
+	                     HttpServletResponse response)
+	                     throws ServletException,
+	                     IOException     {
+            //get text
+            String hashed = req.getParameter("textString");
+            //get choice
+            String choice = req.getParameter("hash");
+            //convert to bytes
+            byte[] msg = hashed.getBytes();
+            
+                try{
+                    
+                           MessageDigest md;
+                       if (choice.equals("MD5")){//"MD5"
+                                  md = MessageDigest.getInstance("MD5");
+                           }
+
+                      else {
+                                  md = MessageDigest.getInstance("SHA1");//sha-1
+                           }
+                       
+                       byte[] thedigest = md.digest(msg);
+                    
+                       String base = new BASE64Encoder().encode(thedigest);//base 64 of hashvalue
+                    
+                   
+                       String  hex = getHexString(thedigest); //hex of hashvalue
+                       //sending back response
+                       response.setContentType("text/html");
+            
+                       PrintWriter out = response.getWriter();
+            
+                       String docType = "<!DOCTYPE HTML PUBLIC \"//W3C//DTD HTML 4.0 ";
+                       docType += "Transitional//EN\">\n";
+            
+               //displaying results
+               out.println(docType +
+                    "<HTML>\n" +
+                    "<HEAD><TITLE>Compute Hash" +"</TITLE></HEAD>\n" +
+                    "<BODY>\n" +
+                    "<H1> Hashes of the string : "+hashed+"</H1>\n"+
+                    "<H1>"+choice+"(Hex):"+hex+ "</H1>\n"+ 
+                    "<H1>"+choice+"(Base):"+base+ "</H1>\n" +
+                    "</BODY></HTML>");
+                       
+                   }catch (NoSuchAlgorithmException ex) {
+                        Logger.getLogger(ComputeHashes.class.getName()).log(Level.SEVERE, null, ex);
+                   }catch (Exception ex) {
+                        Logger.getLogger(ComputeHashes.class.getName()).log(Level.SEVERE, null, ex);
+                   }
+        
+	   }
+   /*
+    * getHexString method
+    * arges: byte[]
+    * return a hex string
+    */
+   public String getHexString(byte[] b) throws Exception{
+   
+            String result = "";
+            for (int i=0;i<b.length;i++){
+            result+=Integer.toString((b[i] &0xff)+0x100,16).substring(1);
+            }
+            
+            return result;
+   }
+
+}
